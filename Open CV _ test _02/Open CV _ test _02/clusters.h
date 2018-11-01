@@ -41,9 +41,9 @@ public:
 	inline void Add(POINT pt) { scores.push_back(pt); }//Добавляем пиксель к кластеру
 	void SetCenter();
 	void Clear();//Чистим вектор
-	static Cluster* Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, int c_dig, int d_dig, int c_coef, int d_coef);
+	static Cluster* Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef);
 	static void InitialCenter(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src);
-	Mat Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, int c_dig, int d_dig, int c_coef, int d_coef);
+	Mat Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef);
 	inline POINT& at(unsigned i) { return scores.at(i); }//Доступ  к элементам вектора
 
 
@@ -131,7 +131,7 @@ void Cluster::Clear() {
 
 
 
-Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, int c_dig, int d_dig, int c_coef, int d_coef) {
+Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef) {
 	for (int j = 0; j < k; j++)
 		clusarr[j].Clear();// Чистим кластер перед использованием
 	int size = vpt.size();
@@ -149,23 +149,55 @@ Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, 
 
 		//int min_col_diff = std::abs(col_diff_r) + std::abs(col_diff_g) + std::abs(col_diff_b);
 		// Цветовое расстояние
-		int min_col_diff = sqrt(
-			pow(cur_r - clusarr[0].mid_r, 2) + pow(cur_g - clusarr[0].mid_g, 2) + pow(cur_r - clusarr[0].mid_b, 2));
+		//int min_col_diff = sqrt(
+		//	pow(cur_r - clusarr[0].mid_r, 2) + pow(cur_g - clusarr[0].mid_g, 2) + pow(cur_r - clusarr[0].mid_b, 2));
+		
+		
+		
+		
+		
+		
+		//----------------TRUE_COLOR_DIST---------------------------\\
+		
+		int min_col_diff;
+		min_col_diff = sqrt((col_diff_b * col_diff_b) + (col_diff_g * col_diff_g) + (col_diff_r * col_diff_r));
+		//----------------TRUE_COLOR_DIST---------------------------\\
 
-		min_col_diff = std::abs(col_diff_b) + std::abs(col_diff_g) + std::abs(col_diff_b);
+
+
+
+
+
+
+
+
+
+
+
+
+		//---------------TRUE_GEOM_DIST--------------\\
 
 
 		int min = sqrt(
 			pow((float)clusarr[0].curX - vpt[i].x, 2) + pow((float)clusarr[0].curY - vpt[i].y, 2)
 		); // Геометрическое расстояние
 		
+		   //---------------TRUE_GEOM_DIST--------------\\
 
 
 
-		min = pow_m(min, d_dig);
-		min_col_diff = pow_m(min_col_diff, c_dig);
+		//----------------MATH_PR-------------\\
 
-		double itog = min * d_coef  + min_col_diff * c_coef;
+		min = pow_m(min * d_coef, d_dig);
+		min_col_diff = pow_m(min_col_diff * c_coef, c_dig);
+
+
+		//----------------MATH_PR---------------//
+
+
+
+
+		double itog = min  + min_col_diff;
 
 
 
@@ -183,31 +215,47 @@ Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, 
 		{
 		
 			
-			
+			//-----------------TRUE_GEOM_DIST------------\\
 			
 			
 			int tmp = sqrt(
 				pow((float)clusarr[j].curX - vpt[i].x, 2) + pow((float)clusarr[j].curY - vpt[i].y, 2)
-			); // Геометрическое расстояние
+			); 
 			
-			
+			   //-----------------TRUE_GEOM_DIST------------\\
 
 
 			int col_diff_r_t = cur_r - clusarr[j].mid_r;
 			int col_diff_g_t = cur_g - clusarr[j].mid_g;
 			int col_diff_b_t = cur_b - clusarr[j].mid_b;
 
-			int min_col_diff_t = sqrt(
-				pow(cur_r - clusarr[j].mid_r, 2) + pow(cur_g - clusarr[j].mid_g, 2) + pow(cur_r - clusarr[j].mid_b, 2));
+		//	int min_col_diff_t = sqrt(
+		//		pow(cur_r - clusarr[j].mid_r, 2) + pow(cur_g - clusarr[j].mid_g, 2) + pow(cur_r - clusarr[j].mid_b, 2));
 
+
+
+			//-------------TRUE_COLOR_DIST----------------\\
+
+			int min_col_diff_t;
 			min_col_diff_t = std::abs(col_diff_b_t) + std::abs(col_diff_g_t) + std::abs(col_diff_b_t);
 
+			//-------------TRUE_COLOR_DIST----------------\\
+
+
 			// Цветовое расстояние с кластером i-м
-			tmp = pow_m(tmp, d_dig);
-			min_col_diff_t = pow_m(min_col_diff_t, c_dig);
 
 
-			double itog_t = tmp * d_coef + min_col_diff_t * c_coef;
+			//--------------------MATH_PR---------------\\
+			
+			tmp = pow_m(tmp * d_coef, d_dig);
+			min_col_diff_t = pow_m(min_col_diff_t * c_coef, c_dig);
+
+
+			//--------------------MATH_PR---------------\\
+
+
+
+			double itog_t = tmp + min_col_diff_t;
 
 			
 			//int intensOtherCentr = (src.at<Vec3b>(clusarr[j].curX, clusarr[j].curY).val[0] + src.at<Vec3b>(clusarr[j].curX, clusarr[j].curY).val[1] +
@@ -233,7 +281,7 @@ Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, 
 
 
 
-Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, int c_dig, int d_dig, int c_coef, int d_coef) {
+Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef) {
 	Cluster::InitialCenter(k, clusarr, vpt, src);
 	for (;;) {//Запускаем основной цикл
 		int chk = 0;
@@ -277,8 +325,8 @@ Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, int c
 			int y = clusarr[i].scores[j].y;
 
 		//	out.at<Vec3b>(x, y).val[2] = clusarr[i].mid_r;
-			//out.at<Vec3b>(x, y).val[1] = clusarr[i].mid_g;
-			//out.at<Vec3b>(x, y).val[0] = clusarr[i].mid_b;
+		//	out.at<Vec3b>(x, y).val[1] = clusarr[i].mid_g;
+		//	out.at<Vec3b>(x, y).val[0] = clusarr[i].mid_b;
 
 			out.at<Vec3b>(x, y) = Vec3b(uchar(50 + 20 * i), uchar(30 + 20 * i), uchar(10 + 20 * i));
 

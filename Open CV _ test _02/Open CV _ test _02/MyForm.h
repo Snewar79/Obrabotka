@@ -684,12 +684,31 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
 
 		k = System::Convert::ToInt32(numericUpDown2->Value);
 
-		int dist_dig = System::Convert::ToInt32(numericUpDown1->Value);
-		int col_dig = System::Convert::ToInt32(numericUpDown3->Value);;
-		int col_coef = System::Convert::ToInt32(numericUpDown4->Value);;
-		int dist_coef = System::Convert::ToInt32(numericUpDown5->Value);;
+		double dist_dig = System::Convert::ToInt32(numericUpDown1->Value);
+		double col_dig = System::Convert::ToInt32(numericUpDown3->Value);;
+		double col_coef = System::Convert::ToInt32(numericUpDown4->Value);;
+		double dist_coef = System::Convert::ToInt32(numericUpDown5->Value);;
 
 
+		double standart_dist_mul;
+
+
+
+		//d = 0.. sqrt(n*n + m*m) * x
+		//c = 0.. 255*sqrt(3)
+		//255*sqrt(3) == sqrt(n*n + m*m) * x
+		// => x ==    255*sqrt(3) / sqrt(n*n + m*m)
+		
+		double x;
+
+		int n = src.cols;
+		int m = src.rows;
+		x = (255 * sqrt(3)) / sqrt(n * n + m * m);
+
+		standart_dist_mul = x;
+
+
+		dist_coef *= standart_dist_mul;
 
 		clusters = new Cluster[k];
 		vector<POINT> p;

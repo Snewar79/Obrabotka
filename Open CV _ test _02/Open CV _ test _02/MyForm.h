@@ -197,13 +197,13 @@ namespace Open_CV___test__02 {
 		Bitmap^ toBitMapPoint(Mat src)
 		{
 			// ------- Mat TO BitMap^ func
-			Bitmap^ bit = gcnew Bitmap(src.rows, src.cols);
+			Bitmap^ bit = gcnew Bitmap(src.cols, src.rows);
 
 			for (int i = 0; i < src.cols; i++)
 				for (int j = 0; j < src.rows; j++)
 				{
-					Vec3b color = src.at<Vec3b>(i, j);
-					bit->SetPixel(j, i, Color().FromArgb(color.val[2], color.val[1], color.val[0]));
+					Vec3b color = src.at<Vec3b>(j, i);
+					bit->SetPixel(i, j, Color().FromArgb(color.val[2], color.val[1], color.val[0]));
 				}
 			return bit;
 		}
@@ -579,7 +579,7 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
 
 		//Start to load image into the picture box and set as src Mat image
 		OpenFileDialog^ opDialog = gcnew OpenFileDialog();
-		opDialog->Filter = "Image(*.bmp; *.jpg)|*.bmp;*.jpg|All files (*.*)|*.*||";
+		opDialog->Filter = "Image(*.bmp; *.jpg; *.png)|*.bmp;*.jpg;*.png|All files (*.*)|*.*||";
 		if (opDialog->ShowDialog() == System::Windows::Forms::DialogResult::Cancel)
 		{
 			return;
@@ -707,7 +707,7 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
 
 		standart_dist_mul = x;
 
-
+		double max = sqrt(n * n + m * m) * 255 * sqrt(3);
 		dist_coef *= standart_dist_mul;
 
 		clusters = new Cluster[k];
@@ -733,17 +733,9 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
 				y = y + 10;
 			}
 
-		Cluss_img = Cluster().Start(k, clusters, p, src, col_dig, dist_dig, col_coef, dist_coef);
+		Cluss_img = Cluster().Start(k, clusters, p, src, col_dig, dist_dig, col_coef, dist_coef, max);
 
-		for (int i = 0; i < k; i++)
-			for (int j = 0; j < clusters[i].scores.size(); j++)
-			{
-				POINT x = clusters[i].scores[j];
-
-				int y = 0;
-				y = y + 10;
-			}
-
+	
 
 		pictureBox3->Image = toBitMapPoint(Cluss_img);
 		pictureBox3->Refresh();

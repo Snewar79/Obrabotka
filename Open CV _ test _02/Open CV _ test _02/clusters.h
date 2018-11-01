@@ -12,7 +12,7 @@ using namespace std;
 using namespace cv;
 
 template <class T>
-T pow_m(T ch, int dig);
+T pow_m(T ch, double dig, double max);
 
 
 class Cluster {
@@ -41,9 +41,9 @@ public:
 	inline void Add(POINT pt) { scores.push_back(pt); }//Добавляем пиксель к кластеру
 	void SetCenter();
 	void Clear();//Чистим вектор
-	static Cluster* Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef);
+	static Cluster* Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef, double max);
 	static void InitialCenter(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src);
-	Mat Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef);
+	Mat Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef, double max);
 	inline POINT& at(unsigned i) { return scores.at(i); }//Доступ  к элементам вектора
 
 
@@ -83,8 +83,8 @@ void Cluster::InitialCenter(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &s
 	int steper = 0;
 
 	for (int i = 0; i < k; i++, steper += step) {
-		clusarr[i].curX = vpt[steper].x;
-		clusarr[i].curY = vpt[steper].y;
+		clusarr[i].curX = vpt[steper + step/2].x;
+		clusarr[i].curY = vpt[steper + step / 2].y;
 
 		//Vec3b color = src.at<Vec3b>(m, n);
 	//	uchar blue = color.val[0];
@@ -101,7 +101,7 @@ void Cluster::InitialCenter(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &s
 
 
 void Cluster::SetCenter() {
-	int sumX = 0, sumY = 0;
+	double sumX = 0, sumY = 0;
 	int i = 0;
 	int size = Size();
 	
@@ -112,13 +112,20 @@ void Cluster::SetCenter() {
 	}
 
 
-	for (; i<size; sumX += scores[i].x, i++);//the centers of mass by x
-	i = 0;
-	for (; i<size; sumY += scores[i].y, i++);//the centers of mass by y
+	for (i; i<size; i++)//the centers of mass by x
+	{
+		sumX = (sumX * i + scores[i].x) / (i + 1);	
+		sumY = (sumY * i + scores[i].y) / (i + 1);
+	}
+
+
 	lastX = curX;
 	lastY = curY;
-	curX = sumX / size;
-	curY = sumY / size;
+
+	curX = sumX;
+	curY = sumY;
+
+	
 }
 
 void Cluster::Clear() {
@@ -131,7 +138,7 @@ void Cluster::Clear() {
 
 
 
-Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef) {
+Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef, double max) {
 	for (int j = 0; j < k; j++)
 		clusarr[j].Clear();// Чистим кластер перед использованием
 	int size = vpt.size();
@@ -188,8 +195,8 @@ Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, 
 
 		//----------------MATH_PR-------------\\
 
-		min = pow_m(min * d_coef, d_dig);
-		min_col_diff = pow_m(min_col_diff * c_coef, c_dig);
+		min = pow_m(min * d_coef, d_dig, max);
+		min_col_diff = pow_m(min_col_diff * c_coef, c_dig, max);
 
 
 		//----------------MATH_PR---------------//
@@ -247,8 +254,8 @@ Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, 
 
 			//--------------------MATH_PR---------------\\
 			
-			tmp = pow_m(tmp * d_coef, d_dig);
-			min_col_diff_t = pow_m(min_col_diff_t * c_coef, c_dig);
+			tmp = pow_m(tmp * d_coef, d_dig, max);
+			min_col_diff_t = pow_m(min_col_diff_t * c_coef, c_dig, max);
 
 
 			//--------------------MATH_PR---------------\\
@@ -281,11 +288,14 @@ Cluster * Cluster::Bind(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, 
 
 
 
-Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef) {
+Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, double c_dig, double d_dig, double c_coef, double d_coef, double max) {
 	Cluster::InitialCenter(k, clusarr, vpt, src);
+
+	int counter = 0;
+	int epselon = 50;
 	for (;;) {//Запускаем основной цикл
 		int chk = 0;
-		Cluster::Bind(k, clusarr, vpt, src, c_dig, d_dig, c_coef, d_coef);//Связываем точки с кластерами
+		Cluster::Bind(k, clusarr, vpt, src, c_dig, d_dig, c_coef, d_coef, max);//Связываем точки с кластерами
 
 		for (int i = 0; i < k; i++)
 		clusarr[i].resetMidColor(src); //Пересчитываем средние цвета в кластере
@@ -303,7 +313,7 @@ Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, doubl
 			//	chk++;
 			if (clusarr[p].active_flag)
 			{
-				if (rx < 50 && ry < 50) // 4 пикселя не считаем за смещение
+				if (rx < epselon && ry < epselon) // 4 пикселя не считаем за смещение
 					chk++;
 			}
 			else chk++;
@@ -312,7 +322,43 @@ Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, doubl
 		}
 
 
+
+
+
+		//----------------ITERATIVE----------------------\\
+
+		/*Mat out_it;
+		out_it = src.clone();
+
+		for (int i = 0; i < k; i++) {
+			for (int j = 0; j < clusarr[i].scores.size(); j++) {
+				int x = clusarr[i].scores[j].x;
+				int y = clusarr[i].scores[j].y;
+
+				//	out.at<Vec3b>(x, y).val[2] = clusarr[i].mid_r;
+				//	out.at<Vec3b>(x, y).val[1] = clusarr[i].mid_g;
+				//	out.at<Vec3b>(x, y).val[0] = clusarr[i].mid_b;
+
+				out_it.at<Vec3b>(x, y) = Vec3b(uchar(50 + 20 * i), uchar(30 + 20 * i), uchar(10 + 20 * i));
+
+
+
+			}
+		}
+
+		counter++;
+
+		imshow(std::to_string(counter), out_it);
+
+		*/
+		//----------------ITERATIVE----------------------\\
+
+
+
+
+
 		if (chk == k) break;//return;//Если да выходим с цикла
+		epselon += 2;
 	}
 
 
@@ -320,6 +366,12 @@ Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, doubl
 	out = src.clone();
 
 	for (int i = 0; i < k; i++) {
+
+		
+		int r = rand() % 256;
+		int g = rand() % 256;
+		int b = rand() % 256;
+
 		for (int j = 0; j < clusarr[i].scores.size(); j++) {
 			int x = clusarr[i].scores[j].x;
 			int y = clusarr[i].scores[j].y;
@@ -328,8 +380,14 @@ Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, doubl
 		//	out.at<Vec3b>(x, y).val[1] = clusarr[i].mid_g;
 		//	out.at<Vec3b>(x, y).val[0] = clusarr[i].mid_b;
 
-			out.at<Vec3b>(x, y) = Vec3b(uchar(50 + 20 * i), uchar(30 + 20 * i), uchar(10 + 20 * i));
+			
 
+
+		
+
+
+			//out.at<Vec3b>(x, y) = Vec3b(uchar(50 + 20 * i), uchar(30 + 20 * i), uchar(10 + 20 * i));
+			out.at<Vec3b>(x, y) = Vec3b(uchar(r), uchar(g), uchar(b));
 
 
 		}
@@ -340,11 +398,16 @@ Mat Cluster::Start(int k, Cluster * clusarr, vector<POINT>& vpt, Mat &src, doubl
 
 
 template <class T>
-T pow_m(T ch,int dig)
+T pow_m(T ch, double dig, double max)
 {
 	T out = ch;
 	for (int i = 1; i < dig; i++)
+	{
+		
+		if (out > max) return max;
 		out *= ch;
 
+
+	}
 	return out;
 }

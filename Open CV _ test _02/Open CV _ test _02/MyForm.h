@@ -1,10 +1,13 @@
 #pragma once
+#define _USE_MATH_DEFINES
 #include "clusters.h"
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <opencv2\opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <windows.h>
+#include <math.h>
+#include <vector>
 //#include <>
 //#include <opencv2\core\core.hpp>
 
@@ -24,6 +27,18 @@ namespace Open_CV___test__02 {
 	using namespace cv;
 
 
+	struct jpeg_bloc
+	{
+		vector<int> v;
+	};
+
+
+	double cf(int f)
+	{
+		if (f == 0) return 1.0 / sqrt(2);
+		if (f > 0) return 1;
+		throw - 1;
+	}
 
 
 
@@ -31,6 +46,238 @@ namespace Open_CV___test__02 {
 	Mat srcOriginal;
 	Cluster *clusters;
 	int k;
+
+
+	double *** Mat_to_matrix(Mat m)
+	{
+		double *** ret_m;
+
+		ret_m = new double**[3]; // R G B
+
+
+		for (int j = 0; j < 3; j++)
+		{
+			ret_m[j] = new double *[m.rows];
+			for (int i = 0; i < m.rows; i++)
+			{
+				ret_m[j][i] = new double[m.cols];
+			}
+		}
+
+
+		for (int i = 0; i < m.rows; i++)
+			for (int j = 0; j < m.cols; j++)
+			{
+				ret_m[0][i][j] = m.at<Vec3b>(i, j)[2];
+				ret_m[1][i][j] = m.at<Vec3b>(i, j)[1];
+				ret_m[2][i][j] = m.at<Vec3b>(i, j)[0];
+
+			}	
+
+		return ret_m;
+	}
+
+
+
+	double clamp(double min, double max, double value)
+	{
+		if (value > max) return max;
+		if (value < min) return min;
+		return value;	
+	}
+
+
+
+	double *** Mat_to_y_cb_cr_double(Mat m)
+	{
+		double *** img = Mat_to_matrix(m); // Ргб матрица
+
+		double *** ret_m;
+		ret_m = new double**[3]; // Y CB CR
+		
+		for (int j = 0; j < 3; j++)
+		{
+			ret_m[j] = new double *[m.rows];
+			for (int i = 0; i < m.rows; i++)
+			{
+				ret_m[j][i] = new double[m.cols];
+			}
+		}
+		
+		for (int i = 0; i < m.rows; i++)
+			for (int j = 0; j < m.cols; j++)
+			{
+				ret_m[0][i][j] = 0 + (0.299 * img[0][i][j]) + (0.587 * img[1][i][j]) + (0.114 * img[2][i][j]); // Яркость
+				ret_m[1][i][j] = 128 - (0.168736 * img[0][i][j]) - (0.331264 * img[1][i][j]) + (0.5 * img[2][i][j]); //Col
+				ret_m[2][i][j] = 128 + (0.5 * img[0][i][j]) + (0.418688 * img[1][i][j]) + (0.081312 * img[2][i][j]); // Col
+			}
+		
+		return ret_m;
+	}
+
+
+
+
+	double *** y_cb_cr_to_matix_rgb(double *** y, int w, int h)
+	{
+	
+		double *** ret_m;
+		ret_m = new double**[3]; // R G B
+
+		for (int j = 0; j < 3; j++)
+		{
+			ret_m[j] = new double *[h];
+			for (int i = 0; i < h; i++)
+			{
+				ret_m[j][i] = new double[w];
+			}
+		}
+
+
+		for (int i = 0; i < h; i++)
+			for (int j = 0; j < w; j++)
+			{
+				ret_m[0][i][j] = y[0][i][j] + 1.402 * (y[2][i][j] - 128);
+				ret_m[1][i][j] = y[0][i][j] - 0.34414 * (y[1][i][j] - 128) - 0.71414 * (y[2][i][j] - 128);
+				ret_m[2][i][j] = y[0][i][j] + 1.772 * (y[1][i][j] - 128);
+				
+				ret_m[0][i][j] = clamp(0, 255, ret_m[0][i][j]);
+				ret_m[1][i][j] = clamp(0, 255, ret_m[1][i][j]);
+				ret_m[2][i][j] = clamp(0, 255, ret_m[2][i][j]);
+
+
+			}
+	
+		return ret_m;
+	
+	
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	double** MultiplyMatrix(double** A, double** B, int size)
+	{
+
+		double **res = new double*[size];
+
+		for (int i = 0; i < size; i++)
+			res[i] = new double[size];
+
+
+		for (int i = 0; i < size; i++)
+		{
+			for (int j = 0; j < size; j++)
+			{
+				res[i][j] = 0;
+				for (int k = 0; k < size; k++)
+				{
+					res[i][j] += A[i][k] * B[k][j];
+
+				}
+
+				//round(res[i][j]);
+			}
+		}
+
+		return res;
+	}
+
+
+
+
+
+
+	double **DTCm;
+
+
+
+	//for i: = 0 to 8 do
+
+		//for j : = 0 to 8 do
+
+			//Q[i, j] = 1 + ((1 + i + j)*q);
+
+	double ** genQx8(double _q = 2) // q = 2
+	{
+		double ** q;
+		q = new double*[8];
+		for (int i = 0; i < 8; i++)
+		{
+			q[i] = new double[8];
+		}
+
+		for (int i = 0; i < 8; i++)
+			for (int j = 0; j < 8; j++)
+				q[i][j] = 1 + ((1 + i + j) * _q);	
+
+		return q;
+	}
+
+
+
+	Mat rgb_mat_to_mat(double *** rmat, int h, int w)
+	{
+		Mat out = Mat(h, w, src.type());
+
+		for (int i = 0; i < h; i++)
+			for (int j = 0; j < w; j++)
+			{
+				out.at<Vec3b>(i, j)[2] = rmat[0][i][j];
+				out.at<Vec3b>(i, j)[1] = rmat[1][i][j];
+				out.at<Vec3b>(i, j)[0] = rmat[2][i][j];
+			}
+	
+		return out;
+	}
+
+
+
+
+
+
+	double ** genDTCx8()
+	{
+		double **ret_m;
+		ret_m = new double *[8];
+		for (int i = 0; i < 8; i++)
+		{
+			ret_m[i] = new double[8];
+		}
+
+
+
+
+		for (int i = 0; i < 8; i++)
+		{
+			for (int j = 0; j < 8; j++)
+			{
+				if (i == 0)
+				{
+					ret_m[i][j] = 1 / sqrt(8);
+				}
+				else
+				{
+					ret_m[i][j] = sqrt(2.0 / 8.0) * Math::Cos((2*j+1)*i*M_PI/(2*8));
+				}
+				
+			}
+		}
+
+		return ret_m;
+	}
+
+
 
 	/// <summary>
 	/// Summary for MyForm
@@ -238,6 +485,9 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown3;
 private: System::Windows::Forms::NumericUpDown^  numericUpDown2;
 private: System::Windows::Forms::NumericUpDown^  numericUpDown4;
 private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
+private: System::Windows::Forms::PictureBox^  pictureBox4;
+private: System::Windows::Forms::Button^  button9;
+private: System::Windows::Forms::Button^  button10;
 
 
 
@@ -286,6 +536,9 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
 			this->numericUpDown2 = (gcnew System::Windows::Forms::NumericUpDown());
 			this->numericUpDown4 = (gcnew System::Windows::Forms::NumericUpDown());
 			this->numericUpDown5 = (gcnew System::Windows::Forms::NumericUpDown());
+			this->pictureBox4 = (gcnew System::Windows::Forms::PictureBox());
+			this->button9 = (gcnew System::Windows::Forms::Button());
+			this->button10 = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox3))->BeginInit();
@@ -294,6 +547,7 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numericUpDown2))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numericUpDown4))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numericUpDown5))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// pictureBox1
@@ -527,11 +781,44 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
 			this->numericUpDown5->TabIndex = 24;
 			this->numericUpDown5->Value = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
 			// 
+			// pictureBox4
+			// 
+			this->pictureBox4->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
+			this->pictureBox4->Location = System::Drawing::Point(939, 12);
+			this->pictureBox4->Name = L"pictureBox4";
+			this->pictureBox4->Size = System::Drawing::Size(214, 208);
+			this->pictureBox4->SizeMode = System::Windows::Forms::PictureBoxSizeMode::Zoom;
+			this->pictureBox4->TabIndex = 25;
+			this->pictureBox4->TabStop = false;
+			// 
+			// button9
+			// 
+			this->button9->Location = System::Drawing::Point(983, 259);
+			this->button9->Name = L"button9";
+			this->button9->Size = System::Drawing::Size(125, 23);
+			this->button9->TabIndex = 26;
+			this->button9->Text = L"JPEG";
+			this->button9->UseVisualStyleBackColor = true;
+			this->button9->Click += gcnew System::EventHandler(this, &MyForm::button9_Click);
+			// 
+			// button10
+			// 
+			this->button10->Location = System::Drawing::Point(939, 346);
+			this->button10->Name = L"button10";
+			this->button10->Size = System::Drawing::Size(125, 23);
+			this->button10->TabIndex = 27;
+			this->button10->Text = L"Test";
+			this->button10->UseVisualStyleBackColor = true;
+			this->button10->Click += gcnew System::EventHandler(this, &MyForm::button10_Click);
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(948, 571);
+			this->ClientSize = System::Drawing::Size(1231, 571);
+			this->Controls->Add(this->button10);
+			this->Controls->Add(this->button9);
+			this->Controls->Add(this->pictureBox4);
 			this->Controls->Add(this->numericUpDown5);
 			this->Controls->Add(this->numericUpDown4);
 			this->Controls->Add(this->numericUpDown2);
@@ -567,6 +854,7 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numericUpDown2))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numericUpDown4))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numericUpDown5))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -742,5 +1030,317 @@ private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
 	}
 	private: System::Void numericUpDown2_ValueChanged(System::Object^  sender, System::EventArgs^  e) {
 	}
+private: System::Void button9_Click(System::Object^  sender, System::EventArgs^  e) {
+
+
+
+	// Копирнем имагу и под размер подгоним сразу. А то потом я ебал
+
+	
+
+	int h, w;
+	
+	h = src.rows / 8;
+	w = src.cols / 8;
+	
+	if (int(src.rows) % 8 != 0)
+	{
+		h = h * 8 + 8;
+	}
+	else
+	{
+		h = h * 8;
+	}
+
+	if (int(src.cols) % 8 != 0)
+	{
+		w = w * 8 + 8;
+	}
+	else
+	{
+		w = w * 8;
+	}
+
+	
+	Mat jpg_m = Mat(h, w, src.type());
+
+
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			jpg_m.at<Vec3b>(i, j) = src.at<Vec3b>((int)clamp(0, src.rows - 1, i), (int)clamp(0, src.cols - 1, j));
+
+			
+
+		}
+	}
+
+
+	//Угу, значит допилили до 8x8 блоков
+
+	DTCm = genDTCx8(); // Матрица дискретного преобразования
+
+	double *** RGB_mat;
+
+	RGB_mat = Mat_to_matrix(jpg_m); // RGB разложение картинки. И насрать, что в даблах. В них удобнее
+
+
+	
+
+	//Таак, переведем изображение в Y хуй-пизда-чето-там
+	double *** Y_cb_cr_mat = Mat_to_y_cb_cr_double(jpg_m);
+
+
+	// Ну бля. Теперь есть массив y cb cr. Полнобитный. Даже с перебором точности.
+
+	//На цвет забьем хуйю Можно подрестатить в два раза. Получим выйгрыш в восемь
+
+	// А вот с яркостью надо запаритЬся
+
+	
+	// Сделаем Y симметричным относительно 0
+
+	for (int i = 0; i < jpg_m.rows; i++)
+	{
+		for (int j = 0; j < jpg_m.cols; j++)
+		{
+			Y_cb_cr_mat[0][i][j] -= 128;
+		}
+	}
+
+	//Зашибись. Теперь можно поблочно проводить преобразование и сохранять их
+
+	double ** block;
+	double ** tmp;
+	double ** res;
+
+	jpeg_bloc **jpg_blocks;
+
+	jpg_blocks = new jpeg_bloc*[h / 8];
+
+
+	for (int i = 0; i < h / 8; i++)
+	{
+		jpg_blocks[i] = new jpeg_bloc[w / 8];
+	}
+
+
+	double ** quant = genQx8(3);
+
+	block = new double*[8];
+	for (int i = 0; i < 8; i++)
+	{
+		block[i] = new double[8];
+	}
+
+
+
+
+	for (int i = 0; i < h / 8; i++)
+	{
+		for (int j = 0; j < w / 8; j++)
+		{
+			// Выделим блок яркостей и проведем преобразование
+			for (int k = 0; k < 8; k++)
+				for (int m = 0; m < 8; m++)
+					block[k][m] = Y_cb_cr_mat[0][i + k][j + m];
+			//Заебись. Выделили блок
+			//Теперь преобразование
+
+			tmp = MultiplyMatrix(block, DTCm, 8);
+			res = MultiplyMatrix(tmp, DTCm, 8);
+			// Перемножили. Посмотреть бы конечна. Но позже
+			// Надо квантовать
+			for (int k = 0; k < 8; k++)
+				for (int m = 0; m < 8; m++)
+					res[k][m] /= quant[k][m];
+
+			vector<int> res_v;
+			int counter = 0;
+
+
+
+			for (int k = 0; k < 8; k++) // Указывает на диагональ
+			{
+				for (int m = 0; m <= k; m++)
+				{
+					res_v.push_back((int)res[k - m][m]);
+					counter++;
+				}
+			}
+
+
+
+			for (int k = 8; k < 16; k++)
+			{
+				for (int m = 0; m <= k; m++)
+				{
+					if ((k - m) >= 0 && (k - m) < 8 && m < 8 && m >= 0)
+					{
+						res_v.push_back((int)res[k - m][m]);
+						counter++;
+					}
+				}
+			}
+
+			// Расхуярили все в вектор. Теперь вектор можно обрезать нахуй
+
+			// Теперь надо решить, сколько мы будем хранить
+
+			vector<int> save_v;
+
+			for (int m = res_v.size() - 1; m > 0; m--)
+			{
+				if (abs(res_v[m]) > 2)
+				{
+					
+
+					for (int k = 0; k < m; k++)
+					{
+						save_v.push_back(res_v[k]);
+					}
+					break;
+
+				}
+			}
+
+			// Пройдемся по вектору, выбрав порог два. И сохраним
+			jpg_blocks[i][j].v = save_v;
+		}
+
+
+	}
+
+
+
+
+
+
+
+	//Все, получили мы короч блоки данных. Типа сжали. Теперь это говоно надо восстановить. Но у меня уже пиздец нет сил
+
+	for (int i = 0; i < h / 8; i++) // Берем блок, короч. Переводим его в матрицу
+	{
+		for (int j = 0; j < w / 8; j++)
+		{
+
+			int counter = 0;
+
+
+			for (int k = 0; k < 8; k++) // Указывает на диагональ
+			{
+				for (int m = 0; m <= k; m++)
+				{
+					if (counter < jpg_blocks[i][j].v.size())
+					{
+						res[k - m][m] = jpg_blocks[i][j].v[counter];
+					}
+					else
+					{
+						res[k - m][m] = 0;
+					}
+					counter++;
+				}
+			}
+
+
+
+			for (int k = 8; k < 16; k++)
+			{
+				for (int m = 0; m <= k; m++)
+				{
+					if ((k - m) >= 0 && (k - m) < 8 && m < 8 && m >= 0)
+					{
+						if (counter < jpg_blocks[i][j].v.size())
+						{
+							res[k - m][m] = jpg_blocks[i][j].v[counter];
+						}
+						else
+						{
+							res[k - m][m] = 0;
+						}
+						counter++;
+					}
+				}
+			}
+
+			//Перезабили res
+
+			for (int k = 0; k < 8; k++)
+				for (int m = 0; m < 8; m++)
+					res[k][m] *= quant[k][m];
+			// Вернули этому говну обычный вид
+
+			//Теперь нужно сделать обратное косинусное преобразование
+
+
+			
+
+
+			for (int x = 0; x < 8; x++)
+			{
+				
+
+				for (int y = 0; y < 8; y++)
+				{
+
+					double sum = 0;
+
+					for (int u = 0; u < 8; u++)
+					{
+						for (int v = 0; v < 8; v++)
+						{
+							sum += cf(u) * cf(v) * res[u][v] * cos(((2 * x + 1) * M_PI * u) / (2 * 8))* cos(((2 * y + 1) * M_PI * v) / (2 * 8));
+						}
+					}
+
+					tmp[x][y] = 2 * sum / 8;
+				}
+
+				
+			}
+
+
+			for (int m = 0; m < 8; m++)
+				for (int k = 0; k < 8; k++)
+				{
+					Y_cb_cr_mat[0][i + m][j + k] = tmp[m][k];
+				}
+
+
+
+		}
+
+
+	}
+
+	//Теперь над короч назад перевести это говнище
+
+	double *** depack_rgb = y_cb_cr_to_matix_rgb(Y_cb_cr_mat, jpg_m.cols, jpg_m.rows);
+
+
+	Mat jpgovno;
+
+	jpgovno = rgb_mat_to_mat(depack_rgb, h, w);
+
+	//imshow("Display window", jpgovno);
+
+}
+private: System::Void button10_Click(System::Object^  sender, System::EventArgs^  e) {
+
+	double ***rgb;// = Mat_to_matrix(src);
+
+	double*** y_cb_cr = Mat_to_y_cb_cr_double(src);
+
+	rgb = y_cb_cr_to_matix_rgb(y_cb_cr, src.cols, src.rows);
+
+	Mat sh = rgb_mat_to_mat(rgb, src.rows, src.cols);
+
+	imshow("Display window", sh);
+
+
+
+}
 };
 }

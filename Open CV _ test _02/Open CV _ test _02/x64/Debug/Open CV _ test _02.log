@@ -1,22 +1,26 @@
 ﻿  MyForm.cpp
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(65): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(66): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(67): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(81): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(106): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(125): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(126): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(144): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(170): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(190): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(198): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(199): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(230): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(257): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(258): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(111): warning C4244: 'argument': conversion from 'double' to 'uchar', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(126): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\администратор\documents\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(129): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(65): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(66): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(67): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(81): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(106): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(125): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(126): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(144): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(170): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(190): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(198): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(199): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(230): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(257): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\clusters.h(258): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(236): warning C4244: '=': conversion from 'double' to 'uchar', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(237): warning C4244: '=': conversion from 'double' to 'uchar', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(238): warning C4244: '=': conversion from 'double' to 'uchar', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(358): warning C4244: 'argument': conversion from 'double' to 'uchar', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(373): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(376): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\obrabotka\open cv _ test _02\open cv _ test _02\MyForm.h(1193): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\opencv\build\include\opencv2\core\cvstd.hpp(575): warning C4793: 'cv::String::String': function compiled as native:
   	Found an intrinsic not supported in managed code
 c:\opencv\build\include\opencv2\core\cuda.inl.hpp(105): warning C4793: 'cv::cuda::GpuMat::GpuMat': function compiled as native:
@@ -37,5 +41,5 @@ c:\opencv\build\include\opencv2\core\ptr.inl.hpp(72): warning C4793: 'cv::detail
   	Found an intrinsic not supported in managed code
 c:\opencv\build\include\opencv2\core\cvstd.hpp(657): warning C4793: 'cv::String::operator=': function compiled as native:
   	Found an intrinsic not supported in managed code
-  Open CV _ test _02.vcxproj -> C:\Users\Администратор\Documents\Obrabotka\Open CV _ test _02\x64\Debug\Open CV _ test _02.exe
-  Open CV _ test _02.vcxproj -> C:\Users\Администратор\Documents\Obrabotka\Open CV _ test _02\x64\Debug\Open CV _ test _02.pdb (Full PDB)
+  Open CV _ test _02.vcxproj -> C:\Obrabotka\Open CV _ test _02\x64\Debug\Open CV _ test _02.exe
+  Open CV _ test _02.vcxproj -> C:\Obrabotka\Open CV _ test _02\x64\Debug\Open CV _ test _02.pdb (Full PDB)

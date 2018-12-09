@@ -48,7 +48,7 @@ namespace Open_CV___test__02 {
 	int k;
 
 
-	double *** Mat_to_matrix(Mat m)
+	double *** Material_to_rgb_array(Mat m)
 	{
 		double *** ret_m;
 
@@ -88,9 +88,9 @@ namespace Open_CV___test__02 {
 
 
 
-	double *** Mat_to_y_cb_cr_double(Mat m)
+	double *** Material_to_YCbCr_array(Mat m)
 	{
-		double *** img = Mat_to_matrix(m); // Ргб матрица
+		double *** img = Material_to_rgb_array(m); // Ргб матрица
 
 		double *** ret_m;
 		ret_m = new double**[3]; // Y CB CR
@@ -109,7 +109,7 @@ namespace Open_CV___test__02 {
 			{
 				ret_m[0][i][j] = 0 + (0.299 * img[0][i][j]) + (0.587 * img[1][i][j]) + (0.114 * img[2][i][j]); // Яркость
 				ret_m[1][i][j] = 128 - (0.168736 * img[0][i][j]) - (0.331264 * img[1][i][j]) + (0.5 * img[2][i][j]); //Col
-				ret_m[2][i][j] = 128 + (0.5 * img[0][i][j]) + (0.418688 * img[1][i][j]) + (0.081312 * img[2][i][j]); // Col
+				ret_m[2][i][j] = 128 + (0.5 * img[0][i][j]) - (0.418688 * img[1][i][j]) - (0.081312 * img[2][i][j]); // Col
 			}
 		
 		return ret_m;
@@ -118,7 +118,7 @@ namespace Open_CV___test__02 {
 
 
 
-	double *** y_cb_cr_to_matix_rgb(double *** y, int w, int h)
+	double *** YCbCr_to_array_rgb(double *** y, int w, int h)
 	{
 	
 		double *** ret_m;
@@ -154,7 +154,19 @@ namespace Open_CV___test__02 {
 	}
 
 
-
+	void transpose(double ** matrix, int n) //либо int matrix[][5], либо int (*matrix)[5]
+	{
+		double t;
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = i; j < n; ++j)
+			{
+				t = matrix[i][j];
+				matrix[i][j] = matrix[j][i];
+				matrix[j][i] = t;
+			}
+		}
+	}
 
 
 
@@ -179,7 +191,7 @@ namespace Open_CV___test__02 {
 		{
 			for (int j = 0; j < size; j++)
 			{
-				res[i][j] = 0;
+				res[i][j] = 0.0;
 				for (int k = 0; k < size; k++)
 				{
 					res[i][j] += A[i][k] * B[k][j];
@@ -198,8 +210,8 @@ namespace Open_CV___test__02 {
 
 
 
-	double **DTCm;
-
+	double **DCTm;
+	double **DCTmT;
 
 
 	//for i: = 0 to 8 do
@@ -226,7 +238,7 @@ namespace Open_CV___test__02 {
 
 
 
-	Mat rgb_mat_to_mat(double *** rmat, int h, int w)
+	Mat rgb_array_to_material(double *** rmat, int h, int w)
 	{
 		Mat out = Mat(h, w, src.type());
 
@@ -268,7 +280,7 @@ namespace Open_CV___test__02 {
 				}
 				else
 				{
-					ret_m[i][j] = sqrt(2.0 / 8.0) * Math::Cos((2*j+1)*i*M_PI/(2*8));
+					ret_m[i][j] = sqrt(2.0 / 8.0) * Math::Cos((2.0*(double)j+1.0)*(double)i*M_PI/(2.0*8.0));
 				}
 				
 			}
@@ -1078,18 +1090,30 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 
 
 	//Угу, значит допилили до 8x8 блоков
-
+	/*std::ofstream out;
+	out.open("DCTmatrix.txt");
 	DTCm = genDTCx8(); // Матрица дискретного преобразования
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			out << DTCm[i][j] << " ";
+		}
+		out << '\n';
+
+	}
+	out.close();
+
+
+	*/
 
 	double *** RGB_mat;
 
-	RGB_mat = Mat_to_matrix(jpg_m); // RGB разложение картинки. И насрать, что в даблах. В них удобнее
+	RGB_mat = Material_to_rgb_array(jpg_m); // RGB разложение картинки. И насрать, что в даблах. В них удобнее
 
 
 	
 
 	//Таак, переведем изображение в Y хуй-пизда-чето-там
-	double *** Y_cb_cr_mat = Mat_to_y_cb_cr_double(jpg_m);
+	double *** Y_cb_cr_mat = Material_to_YCbCr_array(jpg_m);
 
 
 	// Ну бля. Теперь есть массив y cb cr. Полнобитный. Даже с перебором точности.
@@ -1113,7 +1137,7 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 
 	double ** block;
 	double ** tmp;
-	double ** res;
+
 
 	jpeg_bloc **jpg_blocks;
 
@@ -1126,13 +1150,20 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 	}
 
 
-	double ** quant = genQx8(3);
+
+	DCTm = genDTCx8();
+	DCTmT = genDTCx8();
+	transpose(DCTmT, 8);
+
+	double ** quant = genQx8(20);
 
 	block = new double*[8];
 	for (int i = 0; i < 8; i++)
 	{
 		block[i] = new double[8];
 	}
+
+
 
 
 
@@ -1144,17 +1175,79 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 			// Выделим блок яркостей и проведем преобразование
 			for (int k = 0; k < 8; k++)
 				for (int m = 0; m < 8; m++)
-					block[k][m] = Y_cb_cr_mat[0][i + k][j + m];
+					block[k][m] = Y_cb_cr_mat[0][i * 8 + k][j * 8 + m];
+
+			
+
 			//Заебись. Выделили блок
 			//Теперь преобразование
+			/*
+			block[0][0] = -33; block[0][1] = -40; block[0][2] = -40; block[0][3] = -41; block[0][4] = -33; block[0][5] = -40; block[0][6] = -33; block[0][7] = -33;
+			block[1][0] = 15; block[1][1] = 16; block[1][2] = 23; block[1][3] = 23; block[1][4] = 25; block[1][5] = 42; block[1][6] = 55; block[1][7] = 53;
+			block[2][0] = 25; block[2][1] = 23; block[2][2] = 34; block[2][3] = 38; block[2][4] = 34; block[2][5] = 23; block[2][6] = -2; block[2][7] = -11;
+			block[3][0] = 15; block[3][1] = 16; block[3][2] = 5; block[3][3] = 2; block[3][4] = 15; block[3][5] = 25; block[3][6] = 31; block[3][7] = 47;
+			block[4][0] = -5; block[4][1] = -16; block[4][2] = -12; block[4][3] = 2; block[4][4] = 15; block[4][5] = 19; block[4][6] = 34; block[4][7] = 61;
+			block[5][0] = 5; block[5][1] = 23; block[5][2] = 34; block[5][3] = 38; block[5][4] = 42; block[5][5] = 60; block[5][6] = 28; block[5][7] = 0;
+			block[6][0] = 32; block[6][1] = 40; block[6][2] = 38; block[6][3] = 31; block[6][4] = 7; block[6][5] = -27; block[6][6] = -35; block[6][7] = -30;
+			block[7][0] = 26; block[7][1] = 27; block[7][2] = 25; block[7][3] = 16; block[7][4] = -2; block[7][5] = -22; block[7][6] = -10; block[7][7] = 5;
+			*/
 
-			tmp = MultiplyMatrix(block, DTCm, 8);
+			/*tmp = MultiplyMatrix(block, DTCm, 8);
+
+			out.open("TMPmatrix.txt");
+			DTCm = genDTCx8(); // Матрица дискретного преобразования
+			for (int i = 0; i < 8; i++) {
+				for (int j = 0; j < 8; j++) {
+					out << tmp[i][j] << " ";
+				}
+				out << '\n';
+
+			}
+			out.close();
+
 			res = MultiplyMatrix(tmp, DTCm, 8);
-			// Перемножили. Посмотреть бы конечна. Но позже
+
+			out.open("RESmatrix.txt");
+			DTCm = genDTCx8(); // Матрица дискретного преобразования
+			for (int i = 0; i < 8; i++) {
+				for (int j = 0; j < 8; j++) {
+					out << res[i][j] << " ";
+				}
+				out << '\n';
+
+			}
+			out.close();
+			
+			
+			
+			
+			
+		
 			// Надо квантовать
 			for (int k = 0; k < 8; k++)
 				for (int m = 0; m < 8; m++)
 					res[k][m] /= quant[k][m];
+			*/
+
+
+
+
+
+			
+			double **tmp;
+
+			tmp = MultiplyMatrix(block, DCTmT, 8);
+
+			double **res;
+
+			res = MultiplyMatrix(DCTm, tmp, 8);
+
+			// Преобразовали. Расквантуем
+
+			for (int k = 0; k < 8; k++)
+				for (int m = 0; m < 8; m++)
+					res[k][m] /= quant[k][m];
+
 
 			vector<int> res_v;
 			int counter = 0;
@@ -1184,19 +1277,19 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 				}
 			}
 
-			// Расхуярили все в вектор. Теперь вектор можно обрезать нахуй
+			 //Расхуярили все в вектор. Теперь вектор можно обрезать нахуй
 
 			// Теперь надо решить, сколько мы будем хранить
 
 			vector<int> save_v;
 
-			for (int m = res_v.size() - 1; m > 0; m--)
+			for (int m = res_v.size() - 1; m >= 0; m--)
 			{
-				if (abs(res_v[m]) > 2)
+				if (abs(res_v[m]) > 0)
 				{
 					
 
-					for (int k = 0; k < m; k++)
+					for (int k = 0; k <= m; k++)
 					{
 						save_v.push_back(res_v[k]);
 					}
@@ -1204,7 +1297,7 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 
 				}
 			}
-
+			
 			// Пройдемся по вектору, выбрав порог два. И сохраним
 			jpg_blocks[i][j].v = save_v;
 		}
@@ -1218,7 +1311,7 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 
 
 
-	//Все, получили мы короч блоки данных. Типа сжали. Теперь это говоно надо восстановить. Но у меня уже пиздец нет сил
+	//Все, получили мы короч блоки данных. Типа сжали. Теперь это говно надо восстановить. Но у меня уже пиздец нет сил
 
 	for (int i = 0; i < h / 8; i++) // Берем блок, короч. Переводим его в матрицу
 	{
@@ -1226,6 +1319,8 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 		{
 
 			int counter = 0;
+
+			double **res = genDTCx8(); // Равенство только дляы инициализации. Никакой функциональной нагрузки 
 
 
 			for (int k = 0; k < 8; k++) // Указывает на диагональ
@@ -1265,24 +1360,46 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 				}
 			}
 
-			//Перезабили res
+			// Распихали. Деквантуем
 
+			for (int k = 0; k < 8; k++)
+				for (int m = 0; m < 8; m++)
+					res[k][m] *= quant[k][m];
+
+
+
+
+
+
+			double **tmp1;
+			tmp1 = MultiplyMatrix(res, DCTm, 8);
+
+			tmp = MultiplyMatrix(DCTmT, tmp1, 8);
+
+
+			for (int i = 0; i < 8; i++)
+				for (int j = 0; j < 8; j++)
+					tmp[i][j] += 128;
+
+
+			//Перезабили res
+			/*
 			for (int k = 0; k < 8; k++)
 				for (int m = 0; m < 8; m++)
 					res[k][m] *= quant[k][m];
 			// Вернули этому говну обычный вид
 
 			//Теперь нужно сделать обратное косинусное преобразование
-
+			*/
 
 			
 
 
-			for (int x = 0; x < 8; x++)
+			/*for (int y = 0; y < 8; y++)
 			{
 				
 
-				for (int y = 0; y < 8; y++)
+				for (int x = 0; x < 8; x++)
 				{
 
 					double sum = 0;
@@ -1291,21 +1408,21 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 					{
 						for (int v = 0; v < 8; v++)
 						{
-							sum += cf(u) * cf(v) * res[u][v] * cos(((2 * x + 1) * M_PI * u) / (2 * 8))* cos(((2 * y + 1) * M_PI * v) / (2 * 8));
+							sum += cf(u) * cf(v) * res[u][v] * Math::Cos(((2 * x + 1) * M_PI * u) / (2 * 8))* Math::Cos(((2 * y + 1) * M_PI * v) / (2 * 8));
 						}
 					}
 
-					tmp[x][y] = 2 * sum / 8;
+					tmp[y][x] = 2 * sum / 8;
 				}
 
 				
 			}
-
+			*/
 
 			for (int m = 0; m < 8; m++)
 				for (int k = 0; k < 8; k++)
 				{
-					Y_cb_cr_mat[0][i + m][j + k] = tmp[m][k];
+					Y_cb_cr_mat[0][i * 8+ m][j * 8 + k] = tmp[m][k];
 				}
 
 
@@ -1317,25 +1434,25 @@ private: System::Void button9_Click(System::Object^  sender, System::EventArgs^ 
 
 	//Теперь над короч назад перевести это говнище
 
-	double *** depack_rgb = y_cb_cr_to_matix_rgb(Y_cb_cr_mat, jpg_m.cols, jpg_m.rows);
+	double *** depack_rgb = YCbCr_to_array_rgb(Y_cb_cr_mat, jpg_m.cols, jpg_m.rows);
 
 
 	Mat jpgovno;
 
-	jpgovno = rgb_mat_to_mat(depack_rgb, h, w);
+	jpgovno = rgb_array_to_material(depack_rgb, h, w);
 
-	//imshow("Display window", jpgovno);
+	imshow("Display window", jpgovno);
 
 }
 private: System::Void button10_Click(System::Object^  sender, System::EventArgs^  e) {
 
 	double ***rgb;// = Mat_to_matrix(src);
 
-	double*** y_cb_cr = Mat_to_y_cb_cr_double(src);
+	double*** y_cb_cr = Material_to_YCbCr_array(src);
 
-	rgb = y_cb_cr_to_matix_rgb(y_cb_cr, src.cols, src.rows);
+	rgb = YCbCr_to_array_rgb(y_cb_cr, src.cols, src.rows);
 
-	Mat sh = rgb_mat_to_mat(rgb, src.rows, src.cols);
+	Mat sh = rgb_array_to_material(rgb, src.rows, src.cols);
 
 	imshow("Display window", sh);
 
